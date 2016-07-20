@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html ng-app="listaTelefonica">
+  <head>
+    <meta charset="utf-8">
+
+    <title>Lista Telefonica</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+
+    <style>
+	    .jumbotron{
+	    	width: 600px;
+	    	text-align: center;
+	    	margin-top: 20px;
+	    	margin-left: auto;
+	    	margin-right: auto;
+	    }
+
+	    .table{
+	    	margin-top: 20px;
+
+	    }
+
+	    .form-control{
+	    	margin-bottom: 20px;
+	    }
+
+      .selecionado{
+        background-color: yellow;
+      }
+
+      .negrito{
+        font-weight: bold;
+      }
+    </style>
+
+    <script>
+
+      angular.module("listaTelefonica", []);
+
+      angular.module("listaTelefonica").controller("listaTelefonicaController", function ($scope, $http) {
+        $scope.app = "Lista Telefonica";
+
+        $scope.contatos = [];
+        $scope.operadoras = [];
+
+
+        var carregarContatos = function(){
+          $http.get("http://localhost:3000/contatos").success(function (data, status) {
+            $scope.contatos = data;
+          }).error(function (data, status) {
+            $scope.message = "Aconteceu um problema: " + data;
+          });
+        };
+
+        var carregarOperadoras = function () {
+          $http.get("http://localhost:3000/contatos").success(function (data, status) {
+            $scope.operadoras = data;
+          });
+        };
+
+        $scope.adicionarContato = function(contato){
+          contato.data = new Date();
+          $http.post("http://localhost:3000/contatos", contato).success(function (data) {
+            delete $scope.contato;
+            $scope.contatoForm.$setPristine();
+            carregarContatos();
+          }).error(function (data, status) {
+              $scope.message = "Aconteceu um Problema :(" + data;
+          });
+
+        };
+
+        $scope.apagarContatos = function(){
+          var contatosSelecionados = contatos.filter(function (contato){
+            if(!contato.selecionado){
+              return contato
+            };
+          });
+          console.log(contatosSelecionados);
+        };
+
+        carregarContatos();
+
+
+      });
+
+    </script>
+  </head>
+  <body ng-controller="listaTelefonicaController">
+      <div class="jumbotron">
+      	<h3>{{app}}</h3>
+      <input class="form-control" type="text" ng-model="busca" placeholder="Pesquisar">
+      	<table class="table table-striped">
+      		<tr>
+            <th>#</th>
+      			<th>Nome</th>
+      			<th>Telefone</th>
+            <th>Operadora</th>
+            <th>Data</th>
+      		</tr>
+
+      		<tr ng-class="{'selecionado negrito': contato.selecionado}" ng-repeat="contato in contatos | filter:busca">
+            <td><input type="checkbox" ng-model="contato.selecionado"></td>
+      			<td>{{contato.nome | uppercase}}</td>
+      			<td>{{contato.telefone}}</td>
+            <td>{{contato.operadora.nome | lowercase}}</td>
+            <td>{{contato.data | date:'dd/mm/yyyy/ hh:mm'}}</td>
+      		</tr>
+      	</table>
+
+      	<hr/>
+      	<input class="form-control" type="text" ng-model="contato.nome" placeholder="Nome"></input>
+      	<input class="form-control" type="text" ng-model="contato.telefone" placeholder="Telefone"></input>
+
+        <select class="form-control" ng-model="contato.operadora" ng-options="operadora.nome group by operadora.categoria for operadora in operadoras" >
+          <option value="">Selecione uma operadora</option>
+        </select>
+
+      	<button class="btn btn-primary btn-block" ng-click="adicionarContato(contato)" ng-disabled="!contato.nome || !contato.telefone">Adicionar Contato</button>
+        <button class="btn btn-danger btn-block" ng-click="apagarContato(contato)">Apagar Contato</button>
+
+      </div>
+  </body>
+</html>
