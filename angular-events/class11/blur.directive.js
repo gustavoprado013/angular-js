@@ -9,7 +9,6 @@ angular.module('app').directive('ngBlur', function() {
                 }
                 else {
                     $element.removeClass('error');
-                    $element.addClass('sucess')
                 }
             });
         }
